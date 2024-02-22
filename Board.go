@@ -166,10 +166,10 @@ func (b *Board) enumerateLegalLocations() []Location {
 
 func (b *Board) Put(x int, y int) {
 	var legalFlags [8]bool
-	legal := false
+	// legal := false
 	for i := 0; i < 8; i++ {
 		legalFlags[i] = b.isLegal(x, y, i)
-		legal = legal || legalFlags[i]
+		// legal = legal || legalFlags[i]
 	}
 	b.board[x][y] = b.currentColor
 	b.counts[b.currentColor]++
@@ -181,7 +181,7 @@ func (b *Board) Put(x int, y int) {
 	for i := 0; i < 8; i++ {
 		if legalFlags[i] {
 			d := DIRECTIONS[i]
-			for j := 0; j < 8; j++ {
+			for j := 1; j < 8; j++ {
 				x := x + d.x*j
 				y := y + d.y*j
 				if b.board[x][y] == b.currentColor {

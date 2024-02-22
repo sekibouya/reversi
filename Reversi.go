@@ -1,16 +1,22 @@
 package main
 
 import (
+	"fmt"
 	imageColor "image/color"
 	"strconv"
 
 	ebiten "github.com/hajimehoshi/ebiten/v2"
-	//"golang.org/x/image/font/basicfont"
+	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font/basicfont"
 )
 
 const (
-	SCREEN_SIZE          = 500
-	BOARD_COLOR          = 0xff00a000
+	SCREEN_SIZE          = 700
+	BOARD_COLOR_R        = 0
+	BOARD_COLOR_G        = 161
+	BOARD_COLOR_B        = 0
+	BOARD_COLOR_A        = 255
 	LINE_WEIGHT          = 2
 	PIECE_OUTLINE_WEIGHT = 2
 	TEXT_SIZE            = 16
@@ -28,25 +34,25 @@ type game struct {
 	resultToShowFlag bool
 }
 
-func getColorName(color int) string {
-	if color == 0 {
-		return "黒"
-	} else if color == 1 {
-		return "白"
-	} else {
-		return strconv.Itoa(color)
-	}
-}
+// func getColorName(color int) string {
+// 	if color == 0 {
+// 		return "黒"
+// 	} else if color == 1 {
+// 		return "白"
+// 	} else {
+// 		return strconv.Itoa(color)
+// 	}
+// }
 
-func transformBoardLocation(x int, y int) (int, int) {
+func transformBoardLocation(x int, y int) (float32, float32) {
 	cx := BOARD_OFFSET + BOARD_SIZE*(float32(x)+0.5)/8
 	cy := BOARD_OFFSET + BOARD_SIZE*(float32(y)+0.5)/8
-	return int(cx), int(cy)
+	return cx, cy
 }
 
-func transformScreenPosition(cx int, cy int) (int, int) {
-	x := 8 * (float32(cx) - BOARD_OFFSET) / BOARD_SIZE
-	y := 8 * (float32(cy) - BOARD_OFFSET) / BOARD_SIZE
+func transformScreenPosition(cx float32, cy float32) (int, int) {
+	x := 8 * (cx - BOARD_OFFSET) / BOARD_SIZE
+	y := 8 * (cy - BOARD_OFFSET) / BOARD_SIZE
 	return int(x), int(y)
 }
 
@@ -60,21 +66,26 @@ func drawPiece(screen *ebiten.Image, x int, y int, color int, alpha float32, out
 	c := uint8(255 * color)
 	cx, cy := transformBoardLocation(x, y)
 	a := imageColor.NRGBA{c, c, c, uint8(255 * alpha)}
-	ebiten.DrawFilledCircle(screen, cx, cy, PIECE_RADIUS, a, true)
+	vector.DrawFilledCircle(screen, cx, cy, PIECE_RADIUS, a, true)
 	if outline >= 0 {
-		ebiten.StrokeCircle(screen, cx, cy, PIECE_RADIUS, PIECE_OUTLINE_WEIGHT*outline, 255*(1-color), true)
+		vector.StrokeCircle(screen, cx, cy, PIECE_RADIUS, PIECE_OUTLINE_WEIGHT*outline, imageColor.Gray{uint8(255 * (1 - color))}, true)
 	}
 }
 
 func drawBoard(screen *ebiten.Image, b Board) {
 	screen.Fill(imageColor.Gray{64})
-	ebiten.DrawFilledRect(screen, BOARD_OFFSET, BOARD_OFFSET, BOARD_SIZE, BOARD_SIZE, BOARD_COLOR, true)
-	ebiten.StrokeRect(screen, BOARD_OFFSET, BOARD_OFFSET, BOARD_SIZE, BOARD_SIZE, LINE_WEIGHT, 0, true)
+	vector.DrawFilledRect(screen, BOARD_OFFSET, BOARD_OFFSET, BOARD_SIZE, BOARD_SIZE, imageColor.RGBA{BOARD_COLOR_R, BOARD_COLOR_G, BOARD_COLOR_B, BOARD_COLOR_A}, true)
+	vector.StrokeRect(screen, BOARD_OFFSET, BOARD_OFFSET, BOARD_SIZE, BOARD_SIZE, LINE_WEIGHT, imageColor.Black, true)
 	for i := 0; i <= 8; i++ {
 		var p float32 = BOARD_OFFSET + BOARD_SIZE*float32(i)/8
-		ebiten.StrokeLine(screen, BOARD_OFFSET, p, BOARD_OFFSET+BOARD_SIZE, p, LINE_WEIGHT, 0, true)
-		ebiten.StrokeLine(screen, p, BOARD_OFFSET, p, BOARD_OFFSET+BOARD_SIZE, LINE_WEIGHT, 0, true)
+		vector.StrokeLine(screen, BOARD_OFFSET, p, BOARD_OFFSET+BOARD_SIZE, p, LINE_WEIGHT, imageColor.Black, true)
+		vector.StrokeLine(screen, p, BOARD_OFFSET, p, BOARD_OFFSET+BOARD_SIZE, LINE_WEIGHT, imageColor.Black, true)
 	}
+	bc := b.counts[0]
+	wc := b.counts[1]
+	strBc := strconv.Itoa(bc)
+	strWc := strconv.Itoa(wc)
+	text.Draw(screen, "Black "+strBc+"-"+strWc+" White", basicfont.Face7x13, SCREEN_SIZE*0.4, SCREEN_SIZE*0.98, imageColor.White)
 	for y := 0; y < 8; y++ {
 		for x := 0; x < 8; x++ {
 			c := b.board[x][y]
@@ -101,30 +112,41 @@ func drawBoard(screen *ebiten.Image, b Board) {
 func (g *game) Draw(screen *ebiten.Image) {
 	switch {
 	case g.resultToShowFlag:
+		drawBoard(screen, *g.board)
 		bc := g.board.counts[0]
 		wc := g.board.counts[1]
-		str := "黒" + strconv.Itoa(bc) + "-" + strconv.Itoa(wc) + "白\n"
+		fmt.Printf("Black %d-%d White\n", bc, wc)
 		if bc > wc {
-			str += "黒の勝ち"
+			fmt.Println("**BLACK WINS**")
 		} else if bc < wc {
-			str += "白の勝ち"
+			fmt.Println("**WHITE WINS**")
 		} else {
-			str += "引き分け"
+			fmt.Println("**DRAW**")
 		}
-		ebiten.text.Draw(screen, str, ebiten.basicfont, SCREEN_SIZE/2, SCREEN_SIZE/2, 0)
+		fmt.Println("Press 'R' to restart")
 		g.resultToShowFlag = false
 	case !g.gameOverFlag:
 		nextTurnFlag := false
-		x, y := transformScreenPosition(g.mouseX, g.mouseY)
-		if x < 0 || x >= 8 || y < 0 || y >= 8 || !g.board.IsLegal(x, y) {
-			drawBoard(screen, *g.board)
-		} else if g.mouseClickedFlag {
+		x, y := transformScreenPosition(float32(g.mouseX), float32(g.mouseY))
+		if g.board.IsLegal(x, y) && g.mouseClickedFlag {
 			g.board.Put(x, y)
 			nextTurnFlag = true
 		} else {
 			drawBoard(screen, *g.board)
-			drawPiece(screen, x, y, g.board.currentColor, 0.5, -1)
+			locs := g.board.enumerateLegalLocations()
+			for _, l := range locs {
+				drawPiece(screen, l.x, l.y, g.board.currentColor, 0.3, -1)
+			}
 		}
+		// if x < 0 || x >= 8 || y < 0 || y >= 8 || !g.board.IsLegal(x, y) {
+		// 	drawBoard(screen, *g.board)
+		// } else if g.mouseClickedFlag {
+		// 	g.board.Put(x, y)
+		// 	nextTurnFlag = true
+		// } else {
+		// 	drawBoard(screen, *g.board)
+		// 	drawPiece(screen, x, y, g.board.currentColor, 0.5, -1)
+		// }
 		if nextTurnFlag {
 			if !g.board.IsLegalAll() {
 				g.board.Pass()
@@ -136,6 +158,8 @@ func (g *game) Draw(screen *ebiten.Image) {
 			}
 			drawBoard(screen, *g.board)
 		}
+	default:
+		drawBoard(screen, *g.board)
 	}
 	g.mouseClickedFlag = false
 }
@@ -144,8 +168,7 @@ func (g *game) reset() {
 	g.board = InitBoard()
 	g.mouseClickedFlag = false
 	g.gameOverFlag = false
-	// g.resultToShowFlag=false
-	//mouse
+	g.resultToShowFlag = false
 }
 
 func (g *game) Update() error {
@@ -154,8 +177,7 @@ func (g *game) Update() error {
 		g.mouseClickedFlag = true
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		g.board = InitBoard()
-		g.gameOverFlag = false
+		g.reset()
 	}
 	return nil
 }
