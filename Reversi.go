@@ -199,7 +199,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 		} else {
 			fmt.Printf("\x1b[33m%s\x1b[0m\n", "**DRAW**")
 		}
-		fmt.Println("Press 'S' to export game records")
+		fmt.Println("Press 'E' to export game records")
 		fmt.Println("Press 'A' to analyze the game")
 		g.resultToShowFlag = false
 	case !g.gameOverFlag:
@@ -251,19 +251,24 @@ func (g *game) Update() error {
 	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		g.mouseClickedFlag = true
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyArrowLeft) {
+	var keys []ebiten.Key
+	keys = inpututil.AppendJustReleasedKeys(keys)
+	if len(keys) != 1 {
+		return nil
+	}
+	if keys[0] == ebiten.KeyArrowLeft {
 		g.arrowLeftReleasedFlag = true
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyArrowRight) {
+	if keys[0] == ebiten.KeyArrowRight {
 		g.arrowRightReleasedFlag = true
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyR) {
+	if keys[0] == ebiten.KeyR {
 		g.reset()
 	}
-	if inpututil.IsKeyJustReleased(ebiten.KeyI) {
+	if keys[0] == ebiten.KeyI {
 		g.analyzeLocations = []Location{}
 		var file string
-		fmt.Printf("Input the path of the import file>>")
+		fmt.Printf("Path of the file to be imported>>")
 		fmt.Scan(&file)
 		f, err := os.Open(file)
 		if err != nil {
@@ -328,9 +333,9 @@ func (g *game) Update() error {
 		fmt.Println("Imported:", file)
 		fmt.Println("ANALYZE MODE!\nUse '←','→'")
 	}
-	if g.gameOverFlag && inpututil.IsKeyJustReleased(ebiten.KeyS) {
+	if g.gameOverFlag && keys[0] == ebiten.KeyE {
 		var file string
-		fmt.Printf("Input a name for the export file>>")
+		fmt.Printf("Name of the file to be exported>>")
 		fmt.Scan(&file)
 		f, err := os.Create(file)
 		defer func() {
@@ -377,7 +382,7 @@ func (g *game) Update() error {
 		}
 		fmt.Println("Exported:", file)
 	}
-	if g.gameOverFlag && inpututil.IsKeyJustReleased(ebiten.KeyA) {
+	if g.gameOverFlag && keys[0] == ebiten.KeyA {
 		g.analyzeLocations = []Location{}
 		for _, v := range g.board.records {
 			if v.flippedPieces != nil {
