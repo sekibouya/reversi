@@ -1,5 +1,10 @@
 package main
 
+type Location struct {
+	x int
+	y int
+}
+
 type Record struct {
 	color         int
 	placedPiece   Location
@@ -54,50 +59,6 @@ func InitBoard() *Board {
 	return b
 }
 
-func CopyBoard(source Board) *Board {
-	var board [8][8]int
-	for y := 0; y < 8; y++ {
-		for x := 0; x < 8; x++ {
-			board[x][y] = source.board[x][y]
-		}
-	}
-	var counts [2]int
-	counts[0] = source.counts[0]
-	counts[1] = source.counts[1]
-	var records []*Record
-	b := &Board{
-		board:        board,
-		counts:       counts,
-		records:      records,
-		currentColor: source.currentColor,
-	}
-	return b
-}
-
-// func (b *Board) GetCurrentColor() int {
-// 	return b.currentColor
-// }
-
-// func (b *Board) GetNextColor() int {
-// 	return flip(b.currentColor)
-// }
-
-// func (b *Board) Get(location Location) int {
-// 	return b.board[location.x][location.y]
-// }
-
-// func (b *Board) Get(x int, y int) int {
-// 	return b.board[x][y]
-// }
-
-// func (b *Board) GetCount(color int) int {
-// 	return b.counts[color]
-// }
-
-// func (b *Board) GetRecords() []*Record {
-// 	return b.records
-// }
-
 func (b *Board) isLegal(x int, y int, direction int) bool {
 	d := DIRECTIONS[direction]
 	for i := 1; i < 8; i++ {
@@ -115,18 +76,6 @@ func (b *Board) isLegal(x int, y int, direction int) bool {
 	}
 	return false
 }
-
-// func (b *Board) IsLegal(location Location) bool {
-// 	if location.x < 0 || location.x >= 8 || location.y < 0 || location.y >= 8 || b.board[location.x][location.y] != -1 {
-// 		return false
-// 	}
-// 	for i := 0; i < 8; i++ {
-// 		if b.isLegal(location, i) {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
 
 func (b *Board) IsLegal(x int, y int) bool {
 	if x < 0 || x >= 8 || y < 0 || y >= 8 || b.board[x][y] != -1 {
@@ -166,10 +115,8 @@ func (b *Board) enumerateLegalLocations() []Location {
 
 func (b *Board) Put(x int, y int) {
 	var legalFlags [8]bool
-	// legal := false
 	for i := 0; i < 8; i++ {
 		legalFlags[i] = b.isLegal(x, y, i)
-		// legal = legal || legalFlags[i]
 	}
 	b.board[x][y] = b.currentColor
 	b.counts[b.currentColor]++
