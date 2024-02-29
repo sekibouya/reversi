@@ -4,7 +4,7 @@ There are two modes, the first is Game Mode and the second is Analyze Mode.
 
 # DEMO
 Game Mode<br>
-https://github.com/sekibouya/reversi/assets/99582134/7ed30bae-da7f-4fef-835d-350f9f205f56
+https://github.com/sekibouya/reversi/assets/99582134/5a6e950e-a41a-44e7-bc2d-6206249ff801
 
 Analyze Mode<br>
 https://github.com/sekibouya/reversi/assets/99582134/68d0a81c-e45e-4d32-a3f6-bfd21f76ab3c
