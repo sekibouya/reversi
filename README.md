@@ -35,4 +35,9 @@ go run .
 ```
 Basically, a stone can be placed by left-clicking with the mouse.<br>
 Thereafter, follow the instructions displayed in the terminal.<br>
+Pressing the R key resets the board.<br>
+After the game is finished, you can output the game record file by pressing the E key.<br>
+After the game is finished, press the A key to switch to Analyze Mode to analyze the game.<br>
+Pressing the I key loads the game file and switches to Analyze Mode.<br>
+In Analyze Mode, you can advance or go back through the phases by pressing the arrow keys.<br>
 Clicking on a cell where a stone can be placed in Analyze Mode will allow you to consider a new move, and returning to the original procedure will take you back to the phase before the split.
