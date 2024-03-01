@@ -13,6 +13,7 @@ https://github.com/sekibouya/reversi/assets/99582134/68d0a81c-e45e-4d32-a3f6-bfd
 It is a simple reversi game made by GO and can analyze the game.
 
 # Requirement
+* image/color
 * ebiten/v2
 * ebiten/v2/inpututil
 * ebiten/v2/text
