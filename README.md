@@ -1,4 +1,4 @@
-# reversi
+# Reversi
 A person-to-person reversi game that also allows you to analyze the game.<br>
 There are two modes, the first is Game Mode and the second is Analyze Mode.
 
